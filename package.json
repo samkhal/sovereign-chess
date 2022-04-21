@@ -5,7 +5,7 @@
   "author": "samkhal",
   "license": "GPL-3.0",
   "dependencies": {
-    "chessground": "^8.2.1"
+    "chessground-sovereign": "^8.2.1"
   },
   "devDependencies": {
     "http-server": "^0.12"
