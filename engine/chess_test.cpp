@@ -3,6 +3,7 @@
 #include <cassert>
 
 namespace chess {
+using PT = common::PieceType;
 
 // Count how many nodes (states) exist at given depth from a board
 int compute_nodes(const Board &board, int depth, bool divide = false) {
@@ -10,7 +11,7 @@ int compute_nodes(const Board &board, int depth, bool divide = false) {
     return 1;
 
   int node_count = 0;
-  std::vector<Move> legal_moves = get_legal_moves(board);
+  std::vector<Move> legal_moves = Game::get_legal_moves(board);
   Board new_board;
   for (const Move &move : legal_moves) {
     new_board = board;
@@ -130,7 +131,7 @@ void test_possible_moves() {
   {
     Board b = Board::from_fen("8/8/2r5/8/3K4/8/8/8 w - - 0 1");
     // rook blocks 3 king moves, leaving 5
-    auto moves = get_legal_moves(b);
+    auto moves = Game::get_legal_moves(b);
     assert(moves.size() == 5);
   }
 

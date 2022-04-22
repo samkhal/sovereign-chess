@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <iostream>
 #include <optional>
 #include <sstream>
@@ -7,50 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace chess {
-extern bool print_captures;
-extern bool print_moves;
-extern bool print_all_moves;
-
-// ----------------------------- Core types ---------------------------
-
-enum class PieceType : uint8_t {
-  Invalid,
-  Pawn,
-  Knight,
-  Bishop,
-  Rook,
-  Queen,
-  King
-};
-using PT = PieceType;
-
-const std::unordered_map<PieceType, char> piece_names = {
-    {PieceType::Pawn, 'p'}, {PieceType::Knight, 'n'}, {PieceType::Bishop, 'b'},
-    {PieceType::Rook, 'r'}, {PieceType::Queen, 'q'},  {PieceType::King, 'k'}};
-
-inline PieceType name_to_piece_type(char name) {
-  for (auto &[p, p_name] : piece_names) {
-    if (p_name == name)
-      return p;
-  }
-  return PieceType{};
-}
-
-enum class Color : uint8_t { Empty, White, Black };
-
-enum class Castle { Kingside, Queenside };
-
-struct Piece {
-  PieceType type;
-  Color color;
-
-  bool operator==(const Piece &other) const {
-    return type == other.type && color == other.color;
-  }
-  bool operator!=(const Piece &other) const { return !(*this == other); }
-};
-
+namespace common {
 struct Coord {
   int rank;
   int file;
@@ -66,6 +24,63 @@ inline std::ostream &operator<<(std::ostream &out, const Coord &c) {
   out << "Coord{" << c.rank << "," << c.file << "}";
   return out;
 }
+
+const std::vector<Coord> kKnightSteps = {{1, 2}, {-1, 2}, {1, -2}, {-1, -2},
+                                         {2, 1}, {2, -1}, {-2, 1}, {-2, -1}};
+
+const std::vector<Coord> kOrthogonalSteps = {{1, 0}, {0, 1}, {0, -1}, {-1, 0}};
+
+const std::vector<Coord> kDiagonalSteps = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+
+enum class PieceType : uint8_t {
+  Invalid,
+  Pawn,
+  Knight,
+  Bishop,
+  Rook,
+  Queen,
+  King
+};
+
+const std::unordered_map<PieceType, char> piece_names = {
+    {PieceType::Pawn, 'p'}, {PieceType::Knight, 'n'}, {PieceType::Bishop, 'b'},
+    {PieceType::Rook, 'r'}, {PieceType::Queen, 'q'},  {PieceType::King, 'k'}};
+
+inline PieceType name_to_piece_type(char name) {
+  for (auto &[p, p_name] : piece_names) {
+    if (p_name == name)
+      return p;
+  }
+  return PieceType{};
+}
+
+} // namespace common
+
+namespace chess {
+
+using common::Coord;
+using common::PieceType;
+
+extern bool print_captures;
+extern bool print_moves;
+extern bool print_all_moves;
+
+// ----------------------------- Core types ---------------------------
+
+enum class Color : uint8_t { Empty, White, Black };
+
+enum class Castle { Kingside, Queenside };
+
+struct Piece {
+  PieceType type;
+  Color color;
+
+  bool operator==(const Piece &other) const {
+    return type == other.type && color == other.color;
+  }
+  bool operator!=(const Piece &other) const { return !(*this == other); }
+};
+
 inline std::string to_algebraic(const Coord &c) {
   char file = 'a' + c.file;
   char rank = '1' + c.rank;
@@ -103,7 +118,7 @@ public:
 
   friend std::ostream &operator<<(std::ostream &out, const Board &board);
 
-  static Board from_fen(const std::string &fen);
+  static Board from_fen(std::string_view fen);
 
   Color side_to_move() const { return side_to_move_; };
   Color &side_to_move() { return side_to_move_; };
@@ -186,12 +201,9 @@ bool is_en_passant(const Board &board, const Move &move);
 void prettyprint_move(const Board &board, const Move &move);
 
 std::vector<Move> get_possible_moves(const Board &board);
-std::vector<Move> get_legal_moves(const Board &board);
 
 struct Game {
   using Board = Board;
-  static std::vector<Move> get_legal_moves(const Board &board) {
-    return chess::get_legal_moves(board);
-  }
+  static std::vector<Move> get_legal_moves(const Board &board);
 };
 } // namespace chess

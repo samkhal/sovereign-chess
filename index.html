@@ -30,7 +30,8 @@
       return dests;
     }
 
-    const getLegalMoves = Module.cwrap('getLegalMoves', 'string', ['string']);
+    const getLegalMoves = Module.cwrap('get_legal_moves', 'string', ['string']);
+    const initialFEN = '4rnbqkbnr4/4pppppppp4/16/16/16/16/16/16/16/16/16/16/16/16/4PPPPPPPP4/4RNBQKBNR4';
     Module['onRuntimeInitialized'] = function () {
       var cg = Chessground(document.getElementById('dirty'), {
         premovable: {
@@ -42,7 +43,7 @@
         movable: {
           color: 'white',
           free: false,
-          dests: movelistToDests(getLegalMoves(" e2e6")),
+          dests: movelistToDests(getLegalMoves(initialFEN)),
         },
       });
     };

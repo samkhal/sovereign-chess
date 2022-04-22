@@ -1,5 +1,8 @@
 #include "chess.h"
 namespace chess {
+using PT = common::PieceType;
+using common::name_to_piece_type;
+using common::piece_names;
 
 bool print_captures = false;
 bool print_moves = false;
@@ -117,8 +120,6 @@ void Board::make_move(const Move &move, bool count) {
 }
 
 void Board::place_piece(const Piece &piece, const Coord &coord) {
-  // std::cout << "Placing " << (int)piece.type<< " "<<(int)piece.color<<" at
-  // "<<(int)coord.rank<<" "<<(int)coord.file<<std::endl;
   pieces_[coord.rank][coord.file] = piece;
 }
 
@@ -161,7 +162,7 @@ void prettyprint_move(const Board &board, const Move &move) {
 }
 
 // Assume format is correct, read until first space
-Board Board::from_fen(const std::string &fen) {
+Board Board::from_fen(std::string_view fen) {
   Board board;
   int rank = 7;
   int file = 0;
@@ -247,13 +248,6 @@ bool in_range(int coord) { return coord >= 0 && coord <= 7; }
 bool in_range(const Coord &coord) {
   return in_range(coord.rank) && in_range(coord.file);
 }
-
-const std::vector<Coord> kKnightSteps = {{1, 2}, {-1, 2}, {1, -2}, {-1, -2},
-                                         {2, 1}, {2, -1}, {-2, 1}, {-2, -1}};
-
-const std::vector<Coord> kOrthogonalSteps = {{1, 0}, {0, 1}, {0, -1}, {-1, 0}};
-
-const std::vector<Coord> kDiagonalSteps = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
 // Knight, king
 void fill_possible_nonrepeating_moves(const Board &board,
@@ -344,9 +338,10 @@ std::vector<Move> get_possible_moves(const Board &board) {
 
         // Kings
         else if (piece.type == PieceType::King) {
-          fill_possible_nonrepeating_moves(board, kDiagonalSteps, coord, moves);
-          fill_possible_nonrepeating_moves(board, kOrthogonalSteps, coord,
+          fill_possible_nonrepeating_moves(board, common::kDiagonalSteps, coord,
                                            moves);
+          fill_possible_nonrepeating_moves(board, common::kOrthogonalSteps,
+                                           coord, moves);
 
           // 0-0
           if (board.castle_right(piece.color, Castle::Kingside) &&
@@ -368,23 +363,28 @@ std::vector<Move> get_possible_moves(const Board &board) {
 
         // Knights
         else if (piece.type == PieceType::Knight) {
-          fill_possible_nonrepeating_moves(board, kKnightSteps, coord, moves);
+          fill_possible_nonrepeating_moves(board, common::kKnightSteps, coord,
+                                           moves);
         }
 
         // Bishops
         else if (piece.type == PieceType::Bishop) {
-          fill_possible_repeating_moves(board, kDiagonalSteps, coord, moves);
+          fill_possible_repeating_moves(board, common::kDiagonalSteps, coord,
+                                        moves);
         }
 
         // Rook
         else if (piece.type == PieceType::Rook) {
-          fill_possible_repeating_moves(board, kOrthogonalSteps, coord, moves);
+          fill_possible_repeating_moves(board, common::kOrthogonalSteps, coord,
+                                        moves);
         }
 
         // Queen
         else if (piece.type == PieceType::Queen) {
-          fill_possible_repeating_moves(board, kOrthogonalSteps, coord, moves);
-          fill_possible_repeating_moves(board, kDiagonalSteps, coord, moves);
+          fill_possible_repeating_moves(board, common::kOrthogonalSteps, coord,
+                                        moves);
+          fill_possible_repeating_moves(board, common::kDiagonalSteps, coord,
+                                        moves);
         }
       }
     }
@@ -439,7 +439,7 @@ Move castle_intermediate_king_move(const Move &move) {
     return Move{move.src, {move.src.rank, move.src.file - 1}, {}};
 }
 
-std::vector<Move> get_legal_moves(const Board &board) {
+std::vector<Move> Game::get_legal_moves(const Board &board) {
   std::vector<Move> moves = get_possible_moves(board);
   std::erase_if(moves, [&](const Move &m) {
     if (is_castle(board, m)) {

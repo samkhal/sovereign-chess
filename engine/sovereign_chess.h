@@ -1,10 +1,13 @@
 #include "chess.h"
 
 namespace sovereign_chess {
-using chess::PieceType;
 using common::Coord;
+using common::PieceType;
 
-enum class Color : uint8_t { Empty, White, Black }; // TODO
+// Player 1 always starts with White, but may end up playing Black on their next
+// turn.
+enum class Player : uint8_t { Player1, Player2 };
+enum class Color : uint8_t { Empty, White, Black }; // TODO add colors
 
 struct Piece {
   PieceType type;
@@ -17,7 +20,6 @@ struct Piece {
 };
 
 inline std::string to_algebraic(const Coord &c) {
-  // TODO add tests
   char file = 'a' + c.file;
   char rank = c.rank < 9 ? '1' + c.rank : 'A' + (c.rank - 9);
   return {file, rank};
@@ -52,12 +54,10 @@ public:
   void make_move(const Move &move, bool count = false);
   void place_piece(const Piece &piece, const Coord &coord);
 
-  friend std::ostream &operator<<(std::ostream &out, const Board &board);
+  static Board from_fen(std::string_view &fen);
 
-  static Board from_fen(const std::string &fen);
-
-  Color side_to_move() const { return side_to_move_; };
-  Color &side_to_move() { return side_to_move_; };
+  Player player_to_move() const { return player_to_move_; };
+  Player &player_to_move() { return player_to_move_; };
 
   const Piece &piece_at(const Coord &coord) const {
     return pieces_[coord.rank][coord.file];
@@ -65,13 +65,21 @@ public:
   Piece &piece_at(const Coord &coord) {
     return pieces_[coord.rank][coord.file];
   }
+  bool is_enemy_color(Color color) const;
+  Color owned_color(Player player) const { return owned_color_.at(player); }
 
 private:
   std::array<std::array<Piece, 16>, 16> pieces_;
-  Color side_to_move_ = Color::White;
+  Player player_to_move_ = Player::Player1;
+  std::unordered_map<Player, Color> owned_color_ = {
+      {Player::Player1, Color::White}, {Player::Player2, Color::Black}};
 };
 
+std::vector<Move> get_possible_moves(const Board &board);
+
 struct Game {
+  using Board = sovereign_chess::Board;
   static std::vector<Move> get_legal_moves(const Board &board);
 };
+
 } // namespace sovereign_chess
