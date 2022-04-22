@@ -11,15 +11,16 @@
   <div class="blue merida">
     <div id="dirty" class="cg-wrap"></div>
   </div>
+  <script src="engine.js"></script>
   <script src="node_modules/chessground-sovereign/dist/chessground.js"></script>
   <script>
-    function movelistToDests(movelist){
+    function movelistToDests(movelist) {
       var dests = new Map();
-      for(const move of movelist.split(' ')) {
+      for (const move of movelist.split(' ')) {
         // temporary hacky, TODO(samkhal) add proper protocol
         const from = move.slice(0, 2);
         const to = move.slice(2, 4);
-        if(dests.has(from)){
+        if (dests.has(from)) {
           dests.get(from).push(to);
         } else {
           dests.set(from, [to]);
@@ -29,19 +30,23 @@
       return dests;
     }
 
-    var cg = Chessground(document.getElementById('dirty'), {
-      premovable: {
-        enabled: false
-      },
-      drawable: {
-        enabled: false
-      },
-      movable: {
-        color: 'white',
-        free: false,
-        dests: movelistToDests("e2e3 e2e4"),
-      },
-    });
+    const getLegalMoves = Module.cwrap('getLegalMoves', 'string', ['string']);
+    Module['onRuntimeInitialized'] = function () {
+      var cg = Chessground(document.getElementById('dirty'), {
+        premovable: {
+          enabled: false
+        },
+        drawable: {
+          enabled: false
+        },
+        movable: {
+          color: 'white',
+          free: false,
+          dests: movelistToDests(getLegalMoves(" e2e6")),
+        },
+      });
+    };
+
   </script>
 </body>
 
