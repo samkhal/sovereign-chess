@@ -1,17 +1,48 @@
 <html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="assets/chessground.css">
-    <link rel="stylesheet" href="assets/theme.css">
-    <link rel="stylesheet" href="assets/examples.css">
-  </head>
-  <body>
-    <div class="blue merida">
-      <div id="dirty" class="cg-wrap"></div>
-    </div>
-    <script src="node_modules/chessground-sovereign/dist/chessground.js"></script>
-    <script>
-      var cg = Chessground(document.getElementById('dirty'));
-    </script>
-  </body>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link rel="stylesheet" href="assets/chessground.css">
+  <link rel="stylesheet" href="assets/theme.css">
+  <link rel="stylesheet" href="assets/examples.css">
+</head>
+
+<body>
+  <div class="blue merida">
+    <div id="dirty" class="cg-wrap"></div>
+  </div>
+  <script src="node_modules/chessground-sovereign/dist/chessground.js"></script>
+  <script>
+    function movelistToDests(movelist){
+      var dests = new Map();
+      for(const move of movelist.split(' ')) {
+        // temporary hacky, TODO(samkhal) add proper protocol
+        const from = move.slice(0, 2);
+        const to = move.slice(2, 4);
+        if(dests.has(from)){
+          dests.get(from).push(to);
+        } else {
+          dests.set(from, [to]);
+        }
+      }
+      console.log(dests);
+      return dests;
+    }
+
+    var cg = Chessground(document.getElementById('dirty'), {
+      premovable: {
+        enabled: false
+      },
+      drawable: {
+        enabled: false
+      },
+      movable: {
+        color: 'white',
+        free: false,
+        dests: movelistToDests("e2e3 e2e4"),
+      },
+    });
+  </script>
+</body>
+
 </html>
