@@ -97,7 +97,9 @@ Board Board::from_fen(std::string_view &fen) {
         file++;
       }
     } else if (segment == 1) {
-      // TODO player to move
+      if (c == 'b')
+        // TODO handle colors
+        board.player_to_move() = Player::Player2;
     }
 
     // TODO castle rights
