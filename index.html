@@ -5,12 +5,28 @@
   <link rel="stylesheet" href="assets/chessground.css">
   <link rel="stylesheet" href="assets/theme.css">
   <link rel="stylesheet" href="assets/examples.css">
+  <script src="svg-inject.min.js"></script>
+  <script>
+    SVGInject.setOptions({
+      makeIdsUnique: false, // can't remap ids because it'd mangle symbol ids too
+    });
+  </script>
 </head>
 
 <body>
+
+  <img src="assets/images/pieces/merida-solid-transparent/pawn.svg" onload="SVGInject(this)" />
+
+  <img src="assets/images/pieces/merida-solid-transparent/rook.svg" onload="SVGInject(this)" />
+  <img src="assets/images/pieces/merida-solid-transparent/queen.svg" onload="SVGInject(this)" />
+  <img src="assets/images/pieces/merida-solid-transparent/king.svg" onload="SVGInject(this)" />
+  <img src="assets/images/pieces/merida-solid-transparent/bishop.svg" onload="SVGInject(this)" />
+  <img src="assets/images/pieces/merida-solid-transparent/knight.svg" onload="SVGInject(this)" />
+
   <div class="blue merida">
     <div id="dirty" class="cg-wrap"></div>
   </div>
+
   <script src="engine.js"></script>
   <script src="node_modules/chessground-sovereign/dist/chessground.js"></script>
   <script>

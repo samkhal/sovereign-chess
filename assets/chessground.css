@@ -2,6 +2,15 @@
  * Chessground base css properties.
  */
 
+piece svg {
+  width: 100%;
+  height: 100%;
+}
+
+svg path {
+  fill: inherit;
+}
+
 .cg-wrap {
   width: 640px;
   height: 640px;
@@ -99,6 +108,8 @@ cg-board square.current-premove {
   width: 6.25%;
   height: 6.25%;
   background-size: cover;
+  mask-size: cover;
+  -webkit-mask-size: cover;
   z-index: 2;
   will-change: transform;
   pointer-events: none;

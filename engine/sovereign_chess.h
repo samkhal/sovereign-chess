@@ -7,10 +7,28 @@ using common::PieceType;
 // Player 1 always starts with White, but may end up playing Black on their next
 // turn.
 enum class Player : uint8_t { Player1, Player2 };
-enum class Color : uint8_t { Empty, White, Black }; // TODO add colors
+enum class Color : uint8_t {
+  Empty,
+  White,
+  Black,
+  Ash,
+  Slate,
+  Pink,
+  Red,
+  Orange,
+  Yellow,
+  Green,
+  Cyan,
+  Navy,
+  Violet
+};
 
 const std::unordered_map<Color, char> color_names = {
-    {Color::Empty, ' '}, {Color::White, 'w'}, {Color::Black, 'b'}};
+    {Color::Empty, ' '}, {Color::White, 'w'},  {Color::Black, 'b'},
+    {Color::Ash, 'a'},   {Color::Slate, 's'},  {Color::Pink, 'p'},
+    {Color::Red, 'r'},   {Color::Orange, 'o'}, {Color::Yellow, 'y'},
+    {Color::Green, 'g'}, {Color::Cyan, 'c'},   {Color::Navy, 'n'},
+    {Color::Violet, 'v'}};
 
 inline Color name_to_color(char name) {
   for (auto &[c, c_name] : color_names) {
