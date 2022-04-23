@@ -6,6 +6,7 @@
 #include "sovereign_chess.h"
 
 template <class Game> std::string get_legal_moves_impl(std::string_view fen) {
+  std::cout << fen << std::endl;
 
   const typename Game::Board board = Game::Board::from_fen(fen);
 

@@ -9,6 +9,17 @@ using common::PieceType;
 enum class Player : uint8_t { Player1, Player2 };
 enum class Color : uint8_t { Empty, White, Black }; // TODO add colors
 
+const std::unordered_map<Color, char> color_names = {
+    {Color::Empty, ' '}, {Color::White, 'w'}, {Color::Black, 'b'}};
+
+inline Color name_to_color(char name) {
+  for (auto &[c, c_name] : color_names) {
+    if (c_name == name)
+      return c;
+  }
+  return Color::Empty;
+}
+
 struct Piece {
   PieceType type;
   Color color;

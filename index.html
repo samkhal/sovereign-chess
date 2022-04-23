@@ -34,10 +34,10 @@
       return (orig, dest) => {
         var new_fen = cg.getFen();
         new_fen += " ";
-        new_fen += cg.state.turnColor === 'white' ? 'w' : 'b';
+        new_fen += cg.state.turnPlayer === 'white' ? 'w' : 'b';
         cg.set({
           movable: {
-            color: cg.state.turnColor,
+            color: cg.state.turnPlayer,
             dests: movelistToDests(getLegalMoves(new_fen))
           }
         });
@@ -45,10 +45,8 @@
     }
 
     const getLegalMoves = Module.cwrap('get_legal_moves', 'string', ['string']);
-    const initialFEN = '4rnbqkbnr4/4pppppppp4/16/16/16/16/16/16/16/16/16/16/16/16/4PPPPPPPP4/4RNBQKBNR4';
     Module['onRuntimeInitialized'] = function () {
       var cg = Chessground(document.getElementById('dirty'), {
-        fen: initialFEN,
         premovable: {
           enabled: false
         },
@@ -58,12 +56,15 @@
         movable: {
           color: 'white',
           free: false,
-          dests: movelistToDests(getLegalMoves(initialFEN)),
         },
       });
       cg.set({
-        movable: { events: { after: playOtherSide(cg) } }
+        movable: {
+          dests: movelistToDests(getLegalMoves(cg.getFen())),
+          events: { after: playOtherSide(cg) }
+        }
       });
+      console.log(cg);
     };
 
   </script>

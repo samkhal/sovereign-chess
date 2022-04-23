@@ -69,6 +69,7 @@ Board Board::from_fen(std::string_view &fen) {
   int file = 0;
   int segment = 0;
   int skip_accumulator = 0;
+  std::optional<char> last_color = {};
   for (const char &c : fen) {
     if (segment == 0) {
       if (rank < 0)
@@ -86,15 +87,17 @@ Board Board::from_fen(std::string_view &fen) {
         file += skip_accumulator;
         skip_accumulator = 0;
 
-        Color color = ('A' <= c && c <= 'Z') ? Color::White : Color::Black;
-        char lowercase = c;
-        if (color == Color::White)
-          lowercase = c - 'A' + 'a';
-        PieceType type = name_to_piece_type(lowercase);
-        std::cerr << Coord{rank, file} << std::endl;
-        board.place_piece(Piece{type, color}, Coord{rank, file});
+        if (last_color) {
 
-        file++;
+          Color color = name_to_color(*last_color);
+          PieceType type = name_to_piece_type(c);
+          board.place_piece(Piece{type, color}, Coord{rank, file});
+
+          file++;
+          last_color = {};
+        } else {
+          last_color = c;
+        }
       }
     } else if (segment == 1) {
       if (c == 'b')
