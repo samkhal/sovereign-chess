@@ -23,4 +23,30 @@
     <use y="8" href="#g" x:href="#g" />
   </g>
   <use x="8" href="#h" x:href="#h" />
+
+  <rect x="4" y="4" width="1" height="1" fill="red" id="red" />
+  <rect x="11" y="4" width="1" height="1" fill="blue" id="navy" />
+  <rect x="5" y="5" width="1" height="1" fill="yellow" id="yellow" />
+  <rect x="7" y="5" width="1" height="1" fill="pink" id="pink" />
+  <rect x="8" y="5" width="1" height="1" fill="purple" id="violet" />
+  <rect x="10" y="5" width="1" height="1" fill="green" id="green" />
+  <rect x="6" y="6" width="1" height="1" fill="darkgray" id="slate" />
+  <rect x="9" y="6" width="1" height="1" fill="lightgray" id="ash" />
+  <rect x="5" y="7" width="1" height="1" fill="orange" id="orange" />
+  <rect x="7" y="7" width="1" height="1" fill="white" id="white" />
+  <rect x="8" y="7" width="1" height="1" fill="black" id="black" />
+  <rect x="10" y="7" width="1" height="1" fill="cyan" id="cyan" />
+
+  <use x="7" y="7" href="#red" x:href="#red" />
+  <use x="-7" y="7" href="#navy" x:href="#navy" />
+  <use x="5" y="5" href="#yellow" x:href="#yellow" />
+  <use x="1" y="5" href="#pink" x:href="#pink" />
+  <use x="-1" y="5" href="#violet" x:href="#violet" />
+  <use x="-5" y="5" href="#green" x:href="#green" />
+  <use x="3" y="3" href="#slate" x:href="#slate" />
+  <use x="-3" y="3" href="#ash" x:href="#ash" />
+  <use x="5" y="1" href="#orange" x:href="#orange" />
+  <use x="1" y="1" href="#white" x:href="#white" />
+  <use x="-1" y="1" href="#black" x:href="#black" />
+  <use x="-5" y="1" href="#cyan" x:href="#cyan" />
 </svg>
