@@ -24,6 +24,7 @@
 
   <div class="blue merida">
     <div id="dirty" class="cg-wrap"></div>
+    <button id="legal-toggle">Toggle legal moves</button>
   </div>
 
   <script src="engine.js"></script>
@@ -80,6 +81,17 @@
         }
       });
       console.log(cg);
+
+      function toggleLegalMoves() {
+        console.log("legal toggle");
+        cg.set({
+          movable: {
+            free: !cg.state.movable.free,
+          }
+        });
+      }
+
+      document.getElementById('legal-toggle').onclick = () => toggleLegalMoves();
     };
 
   </script>
