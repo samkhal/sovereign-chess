@@ -23,6 +23,35 @@ enum class Color : uint8_t {
   Violet
 };
 
+// clang-format off
+const std::unordered_map<Coord, Color, common::coord_hash> colored_squares = {
+  {{4, 4}, Color::Navy},
+  {{11, 11}, Color::Navy},
+  {{11, 4}, Color::Red},
+  {{4, 11}, Color::Red},
+  {{5, 5}, Color::Green},
+  {{10, 10}, Color::Green},
+  {{7, 5}, Color::Cyan},
+  {{8, 10}, Color::Cyan},
+  {{8, 5}, Color::Orange},
+  {{7, 10}, Color::Orange},
+  {{10, 5}, Color::Yellow},
+  {{5, 10}, Color::Yellow},
+  {{6, 6}, Color::Ash},
+  {{9, 9}, Color::Ash},
+  {{9, 6}, Color::Slate},
+  {{6, 9}, Color::Slate},
+  {{5, 7}, Color::Violet},
+  {{10, 8}, Color::Violet},
+  {{7, 7}, Color::Black},
+  {{8, 8}, Color::Black},
+  {{8, 7}, Color::White},
+  {{7, 8}, Color::White},
+  {{10, 7}, Color::Pink},
+  {{5, 8}, Color::Pink}
+};
+// clang-format on
+
 const std::unordered_map<Color, char> color_names = {
     {Color::Empty, ' '}, {Color::White, 'w'},  {Color::Black, 'b'},
     {Color::Ash, 'a'},   {Color::Slate, 's'},  {Color::Pink, 'p'},

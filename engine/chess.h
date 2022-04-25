@@ -24,6 +24,11 @@ inline std::ostream &operator<<(std::ostream &out, const Coord &c) {
   out << "Coord{" << c.rank << "," << c.file << "}";
   return out;
 }
+struct coord_hash {
+  std::size_t operator()(const Coord &c) const {
+    return std::hash<int>()(c.rank) ^ std::hash<int>()(c.file);
+  }
+};
 
 const std::vector<Coord> kKnightSteps = {{1, 2}, {-1, 2}, {1, -2}, {-1, -2},
                                          {2, 1}, {2, -1}, {-2, 1}, {-2, -1}};

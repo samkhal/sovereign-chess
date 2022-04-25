@@ -1,6 +1,7 @@
 #include "sovereign_chess.h"
 
 namespace sovereign_chess {
+
 using common::name_to_piece_type;
 using PT = common::PieceType;
 // ----------------------------- Move engine ---------------------------
