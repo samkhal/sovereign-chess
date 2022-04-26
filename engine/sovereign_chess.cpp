@@ -11,6 +11,52 @@ bool in_range(const Coord &coord) {
   return in_range(coord.rank) && in_range(coord.file);
 }
 
+// Precondition: square must be colored
+// TODO optimize, constexpr
+Coord other_square_of_same_color(const Coord &coord) {
+  // Compute map of coords by color
+  std::unordered_map<Color, std::vector<Coord>> coords_by_color;
+  for (const auto &[coord, color] : colored_squares) {
+    coords_by_color[color].push_back(coord);
+  }
+
+  // Compute map of square->square for all colors
+  std::unordered_map<Coord, Coord, common::coord_hash> other_square;
+  for (const auto &[color, coords] : coords_by_color) {
+    other_square[coords[0]] = coords[1];
+    other_square[coords[1]] = coords[0];
+  }
+
+  return other_square.at(coord);
+}
+
+// Return false if move violates coloring rules of target square.
+// Precondition: piece exists at source square
+bool check_target_square_color(const Board &board, const Coord &src,
+                               const Coord &dest) {
+  Color piece_color = board.piece_at(src).color;
+
+  std::optional<Color> dest_color = square_color(dest);
+
+  // No rules if target square is uncolored
+  if (!dest_color)
+    return true;
+
+  // may not land on square of same color
+  if (*dest_color == piece_color)
+    return false;
+
+  // If this is a capture, no further checking needed
+  if (board.piece_at(dest).color != Color::Empty)
+    return true;
+
+  // Cannot land on colored square if other square of same color has piece
+  if (board.piece_at(other_square_of_same_color(dest)).color != Color::Empty)
+    return false;
+
+  return true;
+}
+
 // Knight, king
 void fill_possible_nonrepeating_moves(const Board &board,
                                       const std::vector<Coord> &relative_moves,
@@ -18,10 +64,10 @@ void fill_possible_nonrepeating_moves(const Board &board,
                                       std::vector<Move> &moves) {
   for (const Coord &relative : relative_moves) {
     Coord target = src + relative;
-    if (in_range(target) &&
+    if (in_range(target) && check_target_square_color(board, src, target) &&
         (board.piece_at(target).color == Color::Empty ||
-         board.is_enemy_color(board.piece_at(target).color))) {
-      moves.push_back({src, target, {}});
+         is_enemy_color(board, board.piece_at(target).color))) {
+      moves.push_back({src, target});
     }
   }
 }
@@ -35,13 +81,18 @@ void fill_possible_repeating_moves(const Board &board,
     while (true) {
       target = target + relative;
       // if we're off board, stop
-      if (!in_range(target))
+      if (!in_range(target)) {
         break;
-      else if (board.piece_at(target).color == Color::Empty) {
-        // Empty square, continue
-        moves.push_back({src, target});
-      } else if (board.is_enemy_color(board.piece_at(target).color)) {
-        // Enemy piece, record move but stop
+      } else if (board.piece_at(target).color == Color::Empty) {
+        if (check_target_square_color(board, src, target)) {
+          // Empty square that we can move to, continue
+          moves.push_back({src, target});
+        }
+        // if it's empty but we fail color checks, keep going
+      } else if (is_enemy_color(board, board.piece_at(target).color) &&
+                 check_target_square_color(board, src, target)) {
+        // Enemy piece, and we're not landing on our own color, so record move
+        // but stop
         moves.push_back({src, target});
         break;
       } else {
@@ -64,7 +115,7 @@ void Board::place_piece(const Piece &piece, const Coord &coord) {
   pieces_[coord.rank][coord.file] = piece;
 }
 
-Board Board::from_fen(std::string_view &fen) {
+Board Board::from_fen(std::string_view fen) {
   Board board;
   int rank = 15;
   int file = 0;
@@ -111,13 +162,24 @@ Board Board::from_fen(std::string_view &fen) {
   return board;
 }
 
-bool Board::is_enemy_color(Color color) const {
-  // TODO handle controlled colors
-  if (color == Color::Empty)
-    return false;
-  if (color == owned_color(player_to_move()))
-    return false;
-  return true;
+std::optional<Player> Board::controlling_player(Color color) const {
+  if (owned_color(Player::Player1) == color)
+    return Player::Player1;
+  if (owned_color(Player::Player2) == color)
+    return Player::Player2;
+  for (const auto &[coord, sq_color] : colored_squares) {
+    if (sq_color == color) {
+      const Piece &piece = piece_at(coord);
+      if (piece.color != Color::Empty) {
+        // Only one piece may occupy either colored square
+        // Will overflow stack if there's a cycle, but cycles are not allowed
+        return controlling_player(piece.color);
+      }
+    }
+  }
+
+  // Neutral color
+  return {};
 }
 
 std::vector<Move> get_possible_moves(const Board &board) {
@@ -128,8 +190,8 @@ std::vector<Move> get_possible_moves(const Board &board) {
     for (int file = 0; file < 16; file++) {
       Coord coord{rank, file};
       const Piece &piece = board.piece_at(coord);
-      if (piece.type != PieceType::Invalid &&
-          piece.color == board.owned_color(board.player_to_move())) {
+      if (piece.color != Color::Empty &&
+          board.controlling_player(piece.color) == board.player_to_move()) {
         // Pawns
         if (piece.type == PieceType::Pawn) {
           // TODO pawn moves

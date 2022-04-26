@@ -6,7 +6,11 @@ using common::PieceType;
 
 // Player 1 always starts with White, but may end up playing Black on their next
 // turn.
-enum class Player : uint8_t { Player1, Player2 };
+enum class Player : bool { Player1, Player2 };
+inline Player other_player(Player player) {
+  return player == Player::Player1 ? Player::Player2 : Player::Player1;
+};
+
 enum class Color : uint8_t {
   Empty,
   White,
@@ -51,6 +55,12 @@ const std::unordered_map<Coord, Color, common::coord_hash> colored_squares = {
   {{5, 8}, Color::Pink}
 };
 // clang-format on
+inline std::optional<Color> square_color(Coord coord) {
+  auto it = colored_squares.find(coord);
+  if (it != colored_squares.end())
+    return it->second;
+  return {};
+}
 
 const std::unordered_map<Color, char> color_names = {
     {Color::Empty, ' '}, {Color::White, 'w'},  {Color::Black, 'b'},
@@ -83,10 +93,18 @@ inline std::string to_algebraic(const Coord &c) {
   return {file, rank};
 }
 
+inline Coord from_algebraic(std::string_view s) {
+  return Coord{s[1] < 58 ? s[1] - 49 : s[1] - 65 + 9, s[0] - 97};
+}
+
 struct Move {
   Coord src;
   Coord dest;
   PieceType promotion_type = PieceType::Invalid;
+
+  Move(Coord n_src, Coord n_dest) : src(n_src), dest(n_dest) {}
+  Move(std::string_view n_src, std::string_view n_dest)
+      : src(from_algebraic(n_src)), dest(from_algebraic(n_dest)) {}
 
   bool operator==(const Move &other) const {
     return src == other.src && dest == other.dest &&
@@ -112,7 +130,7 @@ public:
   void make_move(const Move &move, bool count = false);
   void place_piece(const Piece &piece, const Coord &coord);
 
-  static Board from_fen(std::string_view &fen);
+  static Board from_fen(std::string_view fen);
 
   Player player_to_move() const { return player_to_move_; };
   Player &player_to_move() { return player_to_move_; };
@@ -123,8 +141,10 @@ public:
   Piece &piece_at(const Coord &coord) {
     return pieces_[coord.rank][coord.file];
   }
-  bool is_enemy_color(Color color) const;
   Color owned_color(Player player) const { return owned_color_.at(player); }
+
+  // Which player controls a color, or empty if it's neutral
+  std::optional<Player> controlling_player(Color color) const;
 
 private:
   std::array<std::array<Piece, 16>, 16> pieces_;
@@ -132,6 +152,15 @@ private:
   std::unordered_map<Player, Color> owned_color_ = {
       {Player::Player1, Color::White}, {Player::Player2, Color::Black}};
 };
+
+inline bool is_enemy_color(const Board &board, Color color) {
+  return board.controlling_player(color) ==
+         other_player(board.player_to_move());
+}
+
+inline bool is_friendly_color(const Board &board, Color color) {
+  return board.controlling_player(color) == board.player_to_move();
+}
 
 std::vector<Move> get_possible_moves(const Board &board);
 

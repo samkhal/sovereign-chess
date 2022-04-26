@@ -30,6 +30,8 @@
   <script src="engine.js"></script>
   <script src="node_modules/chessground-sovereign/dist/chessground.js"></script>
   <script>
+    var legal_moves_only = true;
+
     function movelistToDests(movelist) {
       var dests = new Map();
       for (const move of movelist.split(' ')) {
@@ -53,7 +55,8 @@
         new_fen += cg.state.turnPlayer === 'white' ? 'w' : 'b';
         cg.set({
           movable: {
-            color: cg.state.turnPlayer,
+            // TODO with legal moves on, we should only allow moving one color; but without this, we can still rely on legal moves for filtering
+            // color: window.legal_moves_only ? cg.state.turnPlayer : "both",
             dests: movelistToDests(getLegalMoves(new_fen))
           }
         });
@@ -70,9 +73,12 @@
           enabled: false
         },
         movable: {
-          color: 'white',
+          color: 'both',
           free: false,
         },
+        highlight: {
+          lastMove: false,
+        }
       });
       cg.set({
         movable: {
@@ -83,10 +89,13 @@
       console.log(cg);
 
       function toggleLegalMoves() {
-        console.log("legal toggle");
+        window.legal_moves_only = !window.legal_moves_only;
+        console.log("legal toggle", window.legal_moves_only);
         cg.set({
           movable: {
-            free: !cg.state.movable.free,
+            free: !window.legal_moves_only,
+            // TODO with legal moves on, we should only allow moving one color; but without this, we can still rely on legal moves for filtering
+            // color: window.legal_moves_only ? "white" : "both"
           }
         });
       }
