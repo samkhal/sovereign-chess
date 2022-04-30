@@ -135,8 +135,9 @@ void test_rule_6() {
     auto b = Board::from_fen(
         "aqabvrvnbrbnbbbqbkbbbnbrynyrsbsq/aranvpvpbpbpbpbpbpbpbpbpypypsnsr/"
         "nbnp12opob/nqnp12opoq/crcp12rprr/cncp12rprn/gbgp12pppb/gqgp12pppq/"
-        "yqyp12vpvq/ybyp12vpvb/onop12npnn/orop12npnr/rq13cpcq/rb4rp2wp2wp2cpcb/"
-        "srsnppppwpwp1rp1wpwp1gpgpanar/sqsbprpnwrwnwpwpwkwbwnwrgngrabaq w");
+        "yqyp12vpvq/ybyp12vpvb/onop12npnn/orop12npnr/rq6wp6cpcq/"
+        "rb4rp2wp2wp2cpcb/srsnppppwpwp1rp1wp2gpgpanar/"
+        "sqsbprpnwrwnwpwpwkwbwnwrgngrabaq w");
     auto legal_moves = Game::get_legal_moves(b);
     assert(is_legal(b, {"e2", "e3"}));
 
@@ -148,7 +149,31 @@ void test_rule_6() {
 
     // Pawn against centerline has one legal step
     assert(is_legal(b, {"i3", "i4"}));
-    assert(!is_legal(b, {"i3", "h4"}));
+    assert(!is_legal(b, {"i3", "h3"}));
+
+    assert(is_legal(b, {"h4", "h5"}));
+    assert(!is_legal(b, {"h4", "i4"}));
+  }
+  // diagonal capture
+  {
+    auto b = Board::from_fen(
+        "aqabvrvnbrbnbbbqbkbbbnbrynyrsbsq/aranvpvp8ypypsnsr/nbnp12opob/"
+        "nqnp12opoq/crcp12rprr/cncp12rprn/gbgp12pppb/gqgp12pppq/yqyp12vpvq/"
+        "ybyp12vpvb/onop12npnn/orop1bp1bp1bp1bp4npnr/rqrp2wp3wp5cpcq/"
+        "rbrp1bp1bp1bp1bp4cpcb/srsnpppp1wpwpwp1wpwpwpgpgpanar/"
+        "sqsbprpnwrwnwbwqwkwbwnwrgngrabaq w");
+    auto legal_moves = Game::get_legal_moves(b);
+
+    // Pawn in free space has 3 legal captures
+    assert(is_legal(b, {"e4", "f5"}));
+    assert(is_legal(b, {"e4", "f3"}));
+    assert(!is_legal(b, {"e4", "d3"}));
+    assert(is_legal(b, {"e4", "d5"}));
+    // Pawn against centerline has 2 legal captures
+    assert(is_legal(b, {"i4", "j5"}));
+    assert(!is_legal(b, {"i4", "j3"}));
+    assert(!is_legal(b, {"i4", "h3"}));
+    assert(is_legal(b, {"i4", "h5"}));
   }
 }
 /*

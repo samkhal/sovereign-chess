@@ -103,6 +103,46 @@ void fill_possible_repeating_moves(const Board &board,
   }
 }
 
+void fill_possible_pawn_moves(const Board &board, const Coord &src,
+                              std::vector<Move> &moves) {
+  // Non-capture
+  for (const auto &step : common::kOrthogonalSteps) {
+    Coord dest = src + step;
+    // Check that we're getting closer to the center
+    if (std::abs(dest.rank - 7.5) < std::abs(src.rank - 7.5) ||
+        std::abs(dest.file - 7.5) < std::abs(src.file - 7.5)) {
+      if (board.piece_at(dest).color != Color::Empty)
+        continue; // can't capture
+
+      if (check_target_square_color(board, src, dest)) {
+        moves.push_back(Move{src, dest});
+      }
+
+      // If we weren't blocked, try two-step advance
+      Coord two_step = step + step;
+      if (!in_range(src - two_step) && // Check if we're on outer two rings
+          board.piece_at(src + two_step).color == Color::Empty &&
+          check_target_square_color(board, src, src + two_step)) {
+        moves.push_back(Move{src, src + two_step});
+      }
+    }
+  }
+
+  // Capture
+  for (const auto &step : common::kDiagonalSteps) {
+    Coord dest = src + step;
+    const Piece &target_p = board.piece_at(dest);
+    // Check that we're getting closer to a centerline
+    if ((std::abs(dest.rank - 7.5) < std::abs(src.rank - 7.5) ||
+         std::abs(dest.file - 7.5) < std::abs(src.file - 7.5)) &&
+        board.controlling_player(target_p.color) ==
+            other_player(board.player_to_move()) &&
+        check_target_square_color(board, src, dest)) {
+      moves.push_back(Move{src, dest});
+    }
+  }
+}
+
 Board::Board() {
   for (int rank = 15; rank >= 0; rank--) {
     for (int file = 0; file < 16; file++) {
@@ -194,28 +234,7 @@ std::vector<Move> get_possible_moves(const Board &board) {
           board.controlling_player(piece.color) == board.player_to_move()) {
         // Pawns
         if (piece.type == PieceType::Pawn) {
-          for (const auto &step : common::kOrthogonalSteps) {
-            Coord dest = coord + step;
-            // Check that we're getting closer to the center
-            if (std::abs(dest.rank - 8) < std::abs(rank - 8) ||
-                std::abs(dest.file - 8) < std::abs(file - 8)) {
-              if (board.piece_at(dest).color != Color::Empty)
-                continue; // can't capture
-
-              if (check_target_square_color(board, coord, dest)) {
-                moves.push_back(Move{coord, dest});
-              }
-
-              // If we weren't blocked, try two-step advance
-              Coord two_step = step + step;
-              if (!in_range(coord -
-                            two_step) && // Check if we're on outer two rings
-                  board.piece_at(coord + two_step).color == Color::Empty &&
-                  check_target_square_color(board, coord, coord + two_step)) {
-                moves.push_back(Move{coord, coord + two_step});
-              }
-            }
-          }
+          fill_possible_pawn_moves(board, coord, moves);
         }
 
         // Kings
