@@ -94,7 +94,8 @@ void test_rule_3() { // todo
 }
 void test_rule_4() { // todo
 }
-void test_rule_5() { // Piece cannot move onto square of its own color
+// Piece cannot move onto square of its own color
+void test_rule_5() {
 
   { // Black can't move to black square
     auto b = Board::from_fen(
@@ -120,22 +121,65 @@ void test_rule_5() { // Piece cannot move onto square of its own color
     auto legal_moves = Game::get_legal_moves(b);
     Move legal("j9", "hA");
     Move illegal("j9", "h8");
-    assert(std::find(legal_moves.begin(), legal_moves.end(), legal) !=
-           legal_moves.end());
-    assert(std::find(legal_moves.begin(), legal_moves.end(), illegal) ==
-           legal_moves.end());
+    assert(is_legal(b, legal));
+    assert(!is_legal(b, illegal));
   }
 }
-void test_rule_6() { // todo
+
+/*
+Pawns move orthogonally and capture diagnoally, as long as the movement is
+closer to at least one of the brown lines
+*/
+void test_rule_6() {
+  { // orthogonal movement
+    auto b = Board::from_fen(
+        "aqabvrvnbrbnbbbqbkbbbnbrynyrsbsq/aranvpvpbpbpbpbpbpbpbpbpypypsnsr/"
+        "nbnp12opob/nqnp12opoq/crcp12rprr/cncp12rprn/gbgp12pppb/gqgp12pppq/"
+        "yqyp12vpvq/ybyp12vpvb/onop12npnn/orop12npnr/rq13cpcq/rb4rp2wp2wp2cpcb/"
+        "srsnppppwpwp1rp1wpwp1gpgpanar/sqsbprpnwrwnwpwpwkwbwnwrgngrabaq w");
+    auto legal_moves = Game::get_legal_moves(b);
+    assert(is_legal(b, {"e2", "e3"}));
+
+    // Pawn in free space has two legal steps
+    assert(is_legal(b, {"l3", "l4"}));
+    assert(is_legal(b, {"l3", "k3"}));
+    assert(!is_legal(b, {"l3", "m3"}));
+    assert(!is_legal(b, {"l3", "m2"}));
+
+    // Pawn against centerline has one legal step
+    assert(is_legal(b, {"i3", "i4"}));
+    assert(!is_legal(b, {"i3", "h4"}));
+  }
 }
-void test_rule_7() { // todo
+/*
+Pawns on the first or second ring of the board may move two squares away from
+the closest edge.
+*/
+void test_rule_7() {
+  auto b = Board::from_fen(
+      "aqabvrvnbrbnbbbqbkbbbnbrynyrsbsq/aranvpvpbpbpbpbpbpbpbpbpypypsnsr/"
+      "nbnp12opob/nqnp12opoq/crcp12rprr/cncp12rprn/gbgp12pppb/gqgp12pppq/"
+      "yqyp12vpvq/ybyp12vpvb/onop12npnn/orop12npnr/rq13cpcq/rb4rp2wp2wp2cpcb/"
+      "srsnppppwpwp1rp1wpwp1gpgpanar/sqsbprpnwrwnwpwpwkwbwnwrgngrabaq w");
+  auto legal_moves = Game::get_legal_moves(b);
+  assert(is_legal(b, {"g1", "g2"}));
+  assert(is_legal(b, {"g1", "g3"}));
+  assert(!is_legal(b, {"h1", "h2"}));
+  assert(!is_legal(b, {"h1", "h3"}));
+
+  assert(is_legal(b, {"e2", "e4"}));
+  assert(!is_legal(b, {"i3", "i5"}));
 }
 void test_rule_9() { // todo
 }
 void test_rule_10() { // todo
 }
-void test_rule_11() { // players control pieces via colored squares, unless
-                      // opponent's king has that color
+
+/*
+players control pieces via colored squares, unless opponent's king has that
+color
+*/
+void test_rule_11() {
 
   {
     auto b = Board::from_fen(
@@ -165,8 +209,8 @@ void test_rule_11() { // players control pieces via colored squares, unless
     */
 }
 
-void test_rule_12() { // players may only capture pieces controlled by the other
-                      // player
+void test_rule_12() { // players may only capture pieces controlled by the
+                      // other player
   auto b = Board::from_fen(
       "aqabvrvnbrbnbbbqbkbbbnbrynyrsbsq/aranvpvpbpbpbpbpbpbp3ypsnsr/"
       "nbnp5np1yp4opob/nq5wp3bp3opoq/crcp6wn2bp2rprr/cncp12rprn/gbgp12pppb/"
@@ -214,6 +258,8 @@ int main(int argc, char **argv) {
   test_control();
 
   test_rule_5();
+  test_rule_6();
+  test_rule_7();
   test_rule_11();
   test_rule_12();
   test_rule_13();

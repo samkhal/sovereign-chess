@@ -194,7 +194,28 @@ std::vector<Move> get_possible_moves(const Board &board) {
           board.controlling_player(piece.color) == board.player_to_move()) {
         // Pawns
         if (piece.type == PieceType::Pawn) {
-          // TODO pawn moves
+          for (const auto &step : common::kOrthogonalSteps) {
+            Coord dest = coord + step;
+            // Check that we're getting closer to the center
+            if (std::abs(dest.rank - 8) < std::abs(rank - 8) ||
+                std::abs(dest.file - 8) < std::abs(file - 8)) {
+              if (board.piece_at(dest).color != Color::Empty)
+                continue; // can't capture
+
+              if (check_target_square_color(board, coord, dest)) {
+                moves.push_back(Move{coord, dest});
+              }
+
+              // If we weren't blocked, try two-step advance
+              Coord two_step = step + step;
+              if (!in_range(coord -
+                            two_step) && // Check if we're on outer two rings
+                  board.piece_at(coord + two_step).color == Color::Empty &&
+                  check_target_square_color(board, coord, coord + two_step)) {
+                moves.push_back(Move{coord, coord + two_step});
+              }
+            }
+          }
         }
 
         // Kings
@@ -204,7 +225,7 @@ std::vector<Move> get_possible_moves(const Board &board) {
           fill_possible_nonrepeating_moves(board, common::kOrthogonalSteps,
                                            coord, moves);
 
-          // TODO castling
+          // TODO castling, regime change
         }
 
         // Knights

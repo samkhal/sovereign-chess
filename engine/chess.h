@@ -19,6 +19,9 @@ struct Coord {
   Coord operator+(const Coord &other) const {
     return Coord{rank + other.rank, file + other.file};
   }
+  Coord operator-(const Coord &other) const {
+    return Coord{rank - other.rank, file - other.file};
+  }
 };
 inline std::ostream &operator<<(std::ostream &out, const Coord &c) {
   out << "Coord{" << c.rank << "," << c.file << "}";
