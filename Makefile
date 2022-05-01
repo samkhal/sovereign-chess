@@ -9,3 +9,9 @@ src/engine.mjs: engine/js_api.cpp engine/sovereign_chess.h engine/sovereign_ches
 	  -s EXPORTED_RUNTIME_METHODS='["cwrap"]'  \
 		-gsource-map --source-map-base=http://127.0.0.1:8080/ \
 	  -g
+
+chess_test: engine/chess_test.cpp engine/chess.cpp engine/chess.h
+	clang++ -std=c++20 -O2 -Wall engine/chess_test.cpp engine/chess.cpp -o build/chess_test
+
+sovereign_chess_test: engine/sovereign_chess_test.cpp engine/sovereign_chess.h engine/sovereign_chess.cpp engine/chess.cpp engine/chess.h
+	clang++ -std=c++20 -O2 -g -Wall engine/sovereign_chess_test.cpp engine/sovereign_chess.cpp engine/chess.cpp -o build/sovereign_chess_test
