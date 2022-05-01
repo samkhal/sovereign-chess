@@ -2,8 +2,7 @@ Implementation of Sovereign Chess.
 
 Run
 ```
+make
 npm install
-npm run serve
+npm start
 ```
-
-Then browse http://127.0.0.1:8080

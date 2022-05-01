@@ -1,0 +1,11 @@
+src/engine.mjs: engine/js_api.cpp engine/sovereign_chess.h engine/sovereign_chess.cpp engine/chess.cpp engine/chess.h
+	emcc --no-entry engine/js_api.cpp engine/sovereign_chess.cpp engine/chess.cpp -o src/engine.mjs  \
+		-std=c++20 \
+	  -s ENVIRONMENT='web'  \
+	  -s SINGLE_FILE=1  \
+	  -s EXPORT_NAME='createModule'  \
+	  -s USE_ES6_IMPORT_META=0  \
+	  -s EXPORTED_FUNCTIONS='["_get_legal_moves"]'  \
+	  -s EXPORTED_RUNTIME_METHODS='["cwrap"]'  \
+		-gsource-map --source-map-base=http://127.0.0.1:8080/ \
+	  -g
