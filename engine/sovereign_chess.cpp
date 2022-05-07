@@ -170,6 +170,8 @@ Board Board::from_fen(std::string_view fen) {
         rank -= 1;
         file = 0;
         skip_accumulator = 0;
+      } else if (c == '~') {
+        // preious piece was promoted; we don't care
       } else if (c == ' ') { // end of piece placement
         segment = 1;
       } else if ('0' <= c && c <= '9') { // skip empty spaces
