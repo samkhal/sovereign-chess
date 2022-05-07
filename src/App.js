@@ -4,10 +4,17 @@ import createModule from "./engine.mjs"
 import PromotionDialog from './PromotionDialog';
 import { Chessground as NativeChessground } from 'chessground-sovereign'
 import { TextField, Switch, FormControlLabel, FormGroup } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import "./assets/theme.css"
 import "./assets/examples.css"
 import "./assets/chessground.css"
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+  },
+});
 
 function movelistToDests(movelist) {
   var dests = new Map();
@@ -121,24 +128,26 @@ function App() {
 
 
   return (
-    <div className="App">
-      <div ref={el => setCgElement(el)} />
-      <PromotionDialog color={promotionDialogColor} onClick={handlePromotionSelection} />
+    <ThemeProvider theme={darkTheme}>
+      <div className="App">
+        <div ref={el => setCgElement(el)} />
+        <PromotionDialog color={promotionDialogColor} onClick={handlePromotionSelection} />
 
 
-      <FormGroup>
-        <FormControlLabel control={<Switch
-          checked={allowIllegalMoves}
-          onChange={(e) => setAllowIllegalMoves(e.target.checked)}
-        />} label="Allow illegal moves" />
-        <TextField
-          label="FEN"
-          variant="standard"
-          value={fen}
-          onChange={(e) => setFen(e.target.value)} />
-      </FormGroup>
+        <FormGroup>
+          <FormControlLabel control={<Switch
+            checked={allowIllegalMoves}
+            onChange={(e) => setAllowIllegalMoves(e.target.checked)}
+          />} label="Allow illegal moves" />
+          <TextField
+            label="FEN"
+            variant="standard"
+            value={fen}
+            onChange={(e) => setFen(e.target.value)} />
+        </FormGroup>
 
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }
 
