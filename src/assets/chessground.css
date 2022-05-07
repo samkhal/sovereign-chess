@@ -14,6 +14,12 @@ piece svg {
   height: 100%;
 }
 
+/* TODO do this better */
+piece.promotion svg {
+  width: 20%;
+  height: 20%;
+}
+
 svg path {
   fill: inherit;
 }

@@ -6,6 +6,9 @@
   "private": true,
   "license": "GPL-3.0",
   "dependencies": {
+    "@emotion/react": "^11.9.0",
+    "@emotion/styled": "^11.8.1",
+    "@mui/material": "^5.6.3",
     "chessground-sovereign": "^8.2.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
