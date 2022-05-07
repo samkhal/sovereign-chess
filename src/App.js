@@ -1,9 +1,9 @@
 import React from "react"
-import Button from '@mui/material/Button';
 import { useState, useEffect, useRef } from 'react';
 import createModule from "./engine.mjs"
 import PromotionDialog from './PromotionDialog';
 import { Chessground as NativeChessground } from 'chessground-sovereign'
+import { Switch, FormControlLabel, FormGroup } from '@mui/material';
 
 import "./assets/theme.css"
 import "./assets/examples.css"
@@ -27,14 +27,18 @@ export const key2pos = (k) => [k.charCodeAt(0) - 97, k.charCodeAt(1) < 58 ? k.ch
 
 const initialFen = 'aqabvrvnbrbnbbbqbkbbbnbrynyrsbsq/aranvpvpbpbpbpbpbpbpbpbpypypsnsr/nbnp12opob/nqnp12opoq/crcp12rprr/cncp12rprn/gbgp12pppb/gqgp12pppq/yqyp12vpvq/ybyp12vpvb/onop12npnn/orop12npnr/rqrp12cpcq/rbrp12cpcb/srsnppppwpwpwpwpwpwpwpwpgpgpanar/sqsbprpnwrwnwbwqwkwbwnwrgngrabaq w';
 function App() {
+  const cg = useRef(null);
+
   const [getLegalMoves, setGetLegalMoves] = useState(null);
   const [fen, setFen] = useState(initialFen);
   const [turnPlayer, setTurnPlayer] = useState("white");
+
+  // Promotion-related state
+  const [promotionDialogColor, setPromotionDialogColor] = useState(undefined);
   const [pendingMove, setPendingMove] = useState();
 
-  const cg = useRef(null);
-
-  const [promotionDialogColor, setPromotionDialogColor] = useState(undefined);
+  // Interface settings
+  const [allowIllegalMoves, setAllowIllegalMoves] = useState(false);
 
   useEffect(() => {
     createModule().then((Module) => {
@@ -85,7 +89,7 @@ function App() {
     },
     movable: {
       color: 'both',
-      free: false,
+      free: allowIllegalMoves,
       dests: movelistToDests(getLegalMoves(fen)),
       events: { after: handleMove }
     },
@@ -120,6 +124,14 @@ function App() {
     <div className="App">
       <div ref={el => setCgElement(el)} />
       <PromotionDialog color={promotionDialogColor} onClick={handlePromotionSelection} />
+
+
+      <FormGroup>
+        <FormControlLabel control={<Switch
+          checked={allowIllegalMoves}
+          onChange={(e) => setAllowIllegalMoves(e.target.checked)}
+        />} label="Allow illegal moves" />
+      </FormGroup>
     </div>
   );
 }
