@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import createModule from "./engine.mjs"
 import PromotionDialog from './PromotionDialog';
 import { Chessground as NativeChessground } from 'chessground-sovereign'
-import { Switch, FormControlLabel, FormGroup } from '@mui/material';
+import { TextField, Switch, FormControlLabel, FormGroup } from '@mui/material';
 
 import "./assets/theme.css"
 import "./assets/examples.css"
@@ -131,7 +131,13 @@ function App() {
           checked={allowIllegalMoves}
           onChange={(e) => setAllowIllegalMoves(e.target.checked)}
         />} label="Allow illegal moves" />
+        <TextField
+          label="FEN"
+          variant="standard"
+          value={fen}
+          onChange={(e) => setFen(e.target.value)} />
       </FormGroup>
+
     </div>
   );
 }
