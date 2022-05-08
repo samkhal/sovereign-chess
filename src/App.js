@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import createModule from "./engine.mjs"
 import PromotionDialog from './PromotionDialog';
 import { Chessground as NativeChessground } from 'chessground-sovereign'
-import { TextField, Switch, FormControlLabel, FormGroup } from '@mui/material';
+import { Button, TextField, Switch, FormControlLabel, FormGroup } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import "./assets/theme.css"
@@ -37,6 +37,7 @@ function App() {
   const cg = useRef(null);
 
   const [getLegalMoves, setGetLegalMoves] = useState(null);
+  const [selectMoveAndGetNewFen, setSelectMoveAndGetNewFen] = useState(null);
   const [fen, setFen] = useState(initialFen);
   const [turnPlayer, setTurnPlayer] = useState("white");
 
@@ -46,10 +47,12 @@ function App() {
 
   // Interface settings
   const [allowIllegalMoves, setAllowIllegalMoves] = useState(false);
+  const [respondToMoves, setRespondToMoves] = useState(false);
 
   useEffect(() => {
     createModule().then((Module) => {
       setGetLegalMoves(() => Module.cwrap('get_legal_moves', 'string', ['string']));
+      setSelectMoveAndGetNewFen(() => Module.cwrap('select_and_play_move', 'string', ['string']));
     });
   }, []);
 
@@ -78,7 +81,19 @@ function App() {
       new_fen += newTurnPlayer === 'white' ? 'w' : 'b';
       setFen(new_fen);
       setTurnPlayer(newTurnPlayer);
+
+
+      if (respondToMoves)
+        setTimeout(() => autoplayMove(new_fen, newTurnPlayer), 500)
     }
+  }
+
+  function autoplayMove(fenToPlay, player) {
+    const [move, newFen] = selectMoveAndGetNewFen(fenToPlay).split(",");
+    const newTurnPlayer = player === 'white' ? 'black' : 'white';
+
+    setFen(newFen);
+    setTurnPlayer(newTurnPlayer);
   }
 
   if (!getLegalMoves) {
@@ -135,6 +150,14 @@ function App() {
 
 
         <FormGroup>
+          <Button
+            variant="text"
+            onClick={() => setFen(initialFen)}
+          >New game</Button>
+          <FormControlLabel control={<Switch
+            checked={respondToMoves}
+            onChange={(e) => setRespondToMoves(e.target.checked)}
+          />} label="Computer responds to moves" />
           <FormControlLabel control={<Switch
             checked={allowIllegalMoves}
             onChange={(e) => setAllowIllegalMoves(e.target.checked)}

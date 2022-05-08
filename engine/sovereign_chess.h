@@ -1,3 +1,4 @@
+#pragma once
 #include "chess.h"
 
 namespace sovereign_chess {
@@ -127,10 +128,11 @@ class Board {
 public:
   Board();
 
-  void make_move(const Move &move, bool count = false);
+  void make_move(const Move &move);
   void place_piece(const Piece &piece, const Coord &coord);
 
   static Board from_fen(std::string_view fen);
+  std::string to_fen();
 
   Player player_to_move() const { return player_to_move_; };
   Player &player_to_move() { return player_to_move_; };

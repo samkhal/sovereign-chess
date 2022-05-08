@@ -151,6 +151,16 @@ Board::Board() {
   }
 }
 
+// Move is assumed to be legal
+void Board::make_move(const Move &move) {
+  // Basic move
+  piece_at(move.dest) = piece_at(move.src);
+  piece_at(move.src) = Piece{};
+
+  // swap player
+  player_to_move() = other_player(player_to_move());
+}
+
 void Board::place_piece(const Piece &piece, const Coord &coord) {
   pieces_[coord.rank][coord.file] = piece;
 }
@@ -202,6 +212,37 @@ Board Board::from_fen(std::string_view fen) {
     // TODO castle rights
   }
   return board;
+}
+// TODO tests
+std::string Board::to_fen() {
+  std::ostringstream ss;
+  int gap = 0;
+  for (int rank = 15; rank >= 0; rank--) {
+    for (int file = 0; file < 16; file++) {
+      const auto &piece = piece_at({rank, file});
+      if (piece.color != Color::Empty) {
+        if (gap) {
+          ss << gap;
+          gap = 0;
+        }
+        ss << color_names.at(piece.color);
+        ss << common::piece_names.at(piece.type);
+      } else {
+        gap += 1;
+      }
+    }
+    if (gap) {
+      ss << gap;
+    }
+    gap = 0;
+    if (rank != 0)
+      ss << "/";
+  }
+
+  ss << " ";
+  ss << color_names.at(owned_color(player_to_move()));
+
+  return ss.str();
 }
 
 std::optional<Player> Board::controlling_player(Color color) const {
