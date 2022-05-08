@@ -326,9 +326,33 @@ std::vector<Move> get_possible_moves(const Board &board) {
   return moves;
 }
 
+bool move_kills_king(const Board &board, const Move &move) {
+  return board.piece_at(move.dest).type == PT::King;
+}
+
+bool is_in_check(const Board &board) {
+  Board next_board = board;
+  next_board.player_to_move() = other_player(next_board.player_to_move());
+  auto responses = get_possible_moves(next_board);
+  for (const Move &response : responses) {
+    if (move_kills_king(next_board, response))
+      return true;
+  }
+  return false;
+}
+
+bool move_into_check(const Board &board, const Move &move) {
+  Board next_board = board;
+  next_board.make_move(move);
+  next_board.player_to_move() = other_player(next_board.player_to_move());
+  return is_in_check(next_board);
+}
+
 std::vector<Move> Game::get_legal_moves(const Board &board) {
-  // Todo move legality
-  return get_possible_moves(board);
+  std::vector<Move> moves = get_possible_moves(board);
+  std::erase_if(moves,
+                [&](const Move &m) { return move_into_check(board, m); });
+  return moves;
 }
 
 } // namespace sovereign_chess
