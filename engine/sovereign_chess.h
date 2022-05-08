@@ -104,6 +104,12 @@ struct Move {
   PieceType promotion_type = PieceType::Invalid;
 
   Move(Coord n_src, Coord n_dest) : src(n_src), dest(n_dest) {}
+
+  Move(std::string_view move_str)
+      : Move(move_str.substr(0, 2), move_str.substr(2, 4)) {
+    promotion_type = common::name_to_piece_type(move_str[4]);
+  }
+
   Move(std::string_view n_src, std::string_view n_dest)
       : src(from_algebraic(n_src)), dest(from_algebraic(n_dest)) {}
 
@@ -114,6 +120,8 @@ struct Move {
   std::string to_string() const {
     std::ostringstream ss;
     ss << to_algebraic(src) << to_algebraic(dest);
+    if (promotion_type != PieceType::Invalid)
+      ss << common::piece_names.at(promotion_type);
     return ss.str();
   }
 };

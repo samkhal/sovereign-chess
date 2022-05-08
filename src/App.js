@@ -31,15 +31,23 @@ function movelistToDests(movelist) {
   return dests;
 }
 export const key2pos = (k) => [k.charCodeAt(0) - 97, k.charCodeAt(1) < 58 ? k.charCodeAt(1) - 49 : k.charCodeAt(1) - 65 + 9];
+const turnPlayer = (fen) => fen.split(" ")[1] === 'w' ? 'white' : 'black';
+const pieceNames = new Map([
+  ['pawn', 'p'],
+  ['bishop', 'b'],
+  ['knight', 'n'],
+  ['rook', 'r'],
+  ['queen', 'q'],
+  ['king', 'k'],
+]);
 
 const initialFen = 'aqabvrvnbrbnbbbqbkbbbnbrynyrsbsq/aranvpvpbpbpbpbpbpbpbpbpypypsnsr/nbnp12opob/nqnp12opoq/crcp12rprr/cncp12rprn/gbgp12pppb/gqgp12pppq/yqyp12vpvq/ybyp12vpvb/onop12npnn/orop12npnr/rqrp12cpcq/rbrp12cpcb/srsnppppwpwpwpwpwpwpwpwpgpgpanar/sqsbprpnwrwnwbwqwkwbwnwrgngrabaq w';
+
 function App() {
   const cg = useRef(null);
 
-  const [getLegalMoves, setGetLegalMoves] = useState(null);
-  const [selectMoveAndGetNewFen, setSelectMoveAndGetNewFen] = useState(null);
+  const [engine, setEngine] = useState(null);
   const [fen, setFen] = useState(initialFen);
-  const [turnPlayer, setTurnPlayer] = useState("white");
 
   // Promotion-related state
   const [promotionDialogColor, setPromotionDialogColor] = useState(undefined);
@@ -48,19 +56,32 @@ function App() {
   // Interface settings
   const [allowIllegalMoves, setAllowIllegalMoves] = useState(false);
   const [respondToMoves, setRespondToMoves] = useState(false);
+  const respondToMovesRef = useRef();
+  respondToMovesRef.current = respondToMoves;
+  const [fullAutoplay, setFullAutoplay] = useState(false);
+  const fullAutoplayRef = useRef();
+  fullAutoplayRef.current = fullAutoplay;
+
+  const [computerMoveDelay, setComputerMoveDelay] = useState(500);
+  const computerMoveDelayRef = useRef();
+  computerMoveDelayRef.current = computerMoveDelay;
+
 
   useEffect(() => {
     createModule().then((Module) => {
-      setGetLegalMoves(() => Module.cwrap('get_legal_moves', 'string', ['string']));
-      setSelectMoveAndGetNewFen(() => Module.cwrap('select_and_play_move', 'string', ['string']));
+      setEngine({
+        getLegalMoves: Module.cwrap('get_legal_moves', 'string', ['string']),
+        makeMove: Module.cwrap('make_move', 'string', ['string', 'string']),
+        selectMove: Module.cwrap('select_move', 'string', ['string'])
+      });
     });
   }, []);
 
-  function handleMove(orig, dest) {
+  function handleMove(orig, dest, promotionRole) {
 
-    // is this a promotion?
     const destPos = key2pos(dest);
     const piece = cg.current.state.pieces.get(dest);
+    // is this a promotion?
     if (piece.role === 'pawn' &&
       destPos[0] > 5 && destPos[0] < 10 &&
       destPos[1] > 5 && destPos[1] < 10) {
@@ -72,37 +93,43 @@ function App() {
       setPromotionDialogColor(piece.color);
     }
     else {
+      // Not a promotion. Update the fen.
 
-      let newTurnPlayer = turnPlayer === 'white' ? 'black' : 'white';
-      setTurnPlayer(newTurnPlayer);
-
-      let new_fen = cg.current.getFen();
-      new_fen += " ";
-      new_fen += newTurnPlayer === 'white' ? 'w' : 'b';
-      setFen(new_fen);
-      setTurnPlayer(newTurnPlayer);
+      setFen((oldFen) => {
+        let move = orig + dest;
+        if (promotionRole !== undefined)
+          move += pieceNames.get(promotionRole);
 
 
-      if (respondToMoves)
-        setTimeout(() => autoplayMove(new_fen, newTurnPlayer), 500)
+        const newFen = engine.makeMove(oldFen, move);
+        if (respondToMovesRef.current)
+          setTimeout(() => autoplayMove(newFen), computerMoveDelayRef.current);
+
+        return newFen;
+      });
+
     }
   }
 
-  function autoplayMove(fenToPlay, player) {
-    const [move, newFen] = selectMoveAndGetNewFen(fenToPlay).split(",");
-    const newTurnPlayer = player === 'white' ? 'black' : 'white';
-
+  function autoplayMove(fen, forceFullAutoplay) {
+    const selectedMove = engine.selectMove(fen);
+    const newFen = engine.makeMove(fen, selectedMove);
+    console.log("Computer chose move:", selectedMove);
     setFen(newFen);
-    setTurnPlayer(newTurnPlayer);
+
+    if (fullAutoplayRef.current || forceFullAutoplay) {
+      console.log("Scheduling autoplay");
+      setTimeout(() => autoplayMove(newFen), computerMoveDelayRef.current);
+    }
   }
 
-  if (!getLegalMoves) {
+  if (!engine) {
     return "Loading..."; // TODO(samkhal)
   }
 
   const config = {
     fen: fen,
-    turnPlayer: turnPlayer,
+    turnPlayer: turnPlayer(fen),
     premovable: {
       enabled: false
     },
@@ -112,8 +139,8 @@ function App() {
     movable: {
       color: 'both',
       free: allowIllegalMoves,
-      dests: movelistToDests(getLegalMoves(fen)),
-      events: { after: handleMove }
+      dests: movelistToDests(engine.getLegalMoves(fen)),
+      events: { after: (from, to) => handleMove(from, to) }
     },
     highlight: {
       lastMove: false,
@@ -138,7 +165,7 @@ function App() {
       [pendingMove.to, { role: selectedRole, color: pendingMove.color, promoted: true }]
     ]));
     setPromotionDialogColor(undefined);
-    handleMove(pendingMove.from, pendingMove.to);
+    handleMove(pendingMove.from, pendingMove.to, selectedRole);
   }
 
 
@@ -158,6 +185,20 @@ function App() {
             checked={respondToMoves}
             onChange={(e) => setRespondToMoves(e.target.checked)}
           />} label="Computer responds to moves" />
+          {<FormControlLabel control={<Switch
+            checked={fullAutoplay}
+            onChange={(e) => {
+              setFullAutoplay(e.target.checked);
+              if (e.target.checked)
+                autoplayMove(fen, true);
+            }}
+          />} label="Computer plays both sides" />
+          }
+          <TextField
+            label="Computer move delay"
+            variant="standard"
+            value={computerMoveDelay}
+            onChange={(e) => setComputerMoveDelay(Number(e.target.value))} />
           <FormControlLabel control={<Switch
             checked={allowIllegalMoves}
             onChange={(e) => setAllowIllegalMoves(e.target.checked)}

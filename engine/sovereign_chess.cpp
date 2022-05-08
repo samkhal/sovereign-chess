@@ -157,6 +157,11 @@ void Board::make_move(const Move &move) {
   piece_at(move.dest) = piece_at(move.src);
   piece_at(move.src) = Piece{};
 
+  // Promotion
+  if (move.promotion_type != PieceType::Invalid) {
+    piece_at(move.dest).type = move.promotion_type;
+  }
+
   // swap player
   player_to_move() = other_player(player_to_move());
 }
