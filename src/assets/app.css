@@ -1,0 +1,32 @@
+/* Unrelated to chessground; only for the examples page */
+body {
+  background-image: linear-gradient(to bottom, #2c2c2c, #1a1a1a 116px);
+  color: #b0b0b0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 11px;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: auto 1fr;
+}
+
+.board-outer {
+  grid-column: 1;
+  grid-row: 1 / 4;
+}
+
+.playerinfo-enemy {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.playerinfo-self {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.settings {
+  grid-column: 1;
+  grid-row: 4;
+}

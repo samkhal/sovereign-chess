@@ -12,7 +12,7 @@ export default function PieceImage(props: Props) {
   const PieceTag = "piece" as keyof JSX.IntrinsicElements;
 
   return (
-    <PieceTag className={pieceName + " promotion"}>
+    <PieceTag className={pieceName}>
       <svg onClick={() => { if (props.onClick) props.onClick(); }} viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
         <use className={pieceName} href={'#' + props.role + '-svg'} />
       </svg>

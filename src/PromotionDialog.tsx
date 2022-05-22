@@ -24,13 +24,11 @@ export default function PromotionDialog(props: Props) {
 
   return (
     <Modal open={props.color !== undefined}>
-      <Box sx={style}>
-        <span>
-          <PieceImage role="knight" color={props.color!} onClick={() => props.onClick("knight")} />
-          <PieceImage role="bishop" color={props.color!} onClick={() => props.onClick("bishop")} />
-          <PieceImage role="rook" color={props.color!} onClick={() => props.onClick("rook")} />
-          <PieceImage role="queen" color={props.color!} onClick={() => props.onClick("queen")} />
-        </span>
+      <Box sx={style} className="promotion-panel">
+        <PieceImage role="knight" color={props.color!} onClick={() => props.onClick("knight")} />
+        <PieceImage role="bishop" color={props.color!} onClick={() => props.onClick("bishop")} />
+        <PieceImage role="rook" color={props.color!} onClick={() => props.onClick("rook")} />
+        <PieceImage role="queen" color={props.color!} onClick={() => props.onClick("queen")} />
       </Box>
     </Modal>
   );

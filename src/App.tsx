@@ -9,7 +9,7 @@ import { Button, TextField, Switch, FormControlLabel, FormGroup } from '@mui/mat
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import "./assets/theme.css"
-import "./assets/examples.css"
+import "./assets/app.css"
 import "./assets/chessground.css"
 
 import { FEN, Key, Role, Color, Side, Pos } from 'chessground-sovereign/types';
@@ -196,16 +196,16 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <div className="App">
-        <PlayerInfo ownedColor={Color.Navy} controlledColors={[]} />
-        <div className="blue merida">
+        <PlayerInfo className="playerinfo-enemy" ownedColor={Color.Navy} controlledColors={[]} />
+        <div className="blue merida board-outer">
           <div ref={el => setCgElement(el)} />
         </div>
-        <PlayerInfo ownedColor={Color.Violet} controlledColors={[Color.Green, Color.Yellow]} />
+        <PlayerInfo className="playerinfo-self" ownedColor={Color.Violet} controlledColors={[Color.Green, Color.Yellow]} />
 
         <PromotionDialog color={promotionDialogColor} onClick={handlePromotionSelection} />
 
 
-        <FormGroup>
+        <FormGroup className="settings">
           <Button
             variant="text"
             onClick={() => setFen(initialFen)}

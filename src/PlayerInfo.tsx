@@ -6,18 +6,17 @@ import PieceImage from './PieceImage';
 
 interface Props {
   ownedColor: Color,
-  controlledColors: Array<Color>
+  controlledColors: Array<Color>,
+  className?: string
 }
 
 export default function PlayerInfo(props: Props) {
 
   return (
-    <Box>
-      <span>
-        <PieceImage role="king" color={props.ownedColor} />
-        {props.controlledColors.map((c) =>
-          <PieceImage role="pawn" color={c} key={c} />)}
-      </span>
+    <Box className={props.className + " playerinfo"}>
+      <PieceImage role="king" color={props.ownedColor} />
+      {props.controlledColors.map((c) =>
+        <PieceImage role="pawn" color={c} key={c} />)}
     </Box>
   );
 }
