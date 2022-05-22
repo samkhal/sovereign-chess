@@ -1,7 +1,9 @@
 import React from "react"
 import { useState, useEffect, useRef } from 'react';
+// @ts-ignore
 import createModule from "./engine.mjs"
 import PromotionDialog from './PromotionDialog';
+import PlayerInfo from './PlayerInfo';
 import { Chessground as NativeChessground } from 'chessground-sovereign'
 import { Button, TextField, Switch, FormControlLabel, FormGroup } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -10,13 +12,33 @@ import "./assets/theme.css"
 import "./assets/examples.css"
 import "./assets/chessground.css"
 
+import { FEN, Key, Role, Color, Side, Pos } from 'chessground-sovereign/types';
+
+type Move = string; // TODO
+
+interface PendingMove {
+  from: Key,
+  to: Key,
+  color: Color
+};
+
+interface Engine {
+  getLegalMoves(fen: FEN): string;
+  makeMove(fen: FEN, move: Move): string;
+  selectMove(fen: FEN): string;
+}
+
+interface EngineModule extends EmscriptenModule {
+  cwrap: typeof cwrap;
+}
+
 const darkTheme = createTheme({
   palette: {
     mode: 'dark',
   },
 });
 
-function movelistToDests(movelist) {
+function movelistToDests(movelist: string) {
   var dests = new Map();
   for (const move of movelist.split(' ')) {
     // temporary hacky, TODO(samkhal) add proper protocol
@@ -30,8 +52,8 @@ function movelistToDests(movelist) {
   }
   return dests;
 }
-export const key2pos = (k) => [k.charCodeAt(0) - 97, k.charCodeAt(1) < 58 ? k.charCodeAt(1) - 49 : k.charCodeAt(1) - 65 + 9];
-const turnPlayer = (fen) => fen.split(" ")[1] === 'w' ? 'white' : 'black';
+export const key2pos = (k: Key): Pos => [k.charCodeAt(0) - 97, k.charCodeAt(1) < 58 ? k.charCodeAt(1) - 49 : k.charCodeAt(1) - 65 + 9];
+const turnPlayer = (fen: FEN): Side => fen.split(" ")[1] === 'w' ? Side.White : Side.Black;
 const pieceNames = new Map([
   ['pawn', 'p'],
   ['bishop', 'b'],
@@ -44,31 +66,31 @@ const pieceNames = new Map([
 const initialFen = 'aqabvrvnbrbnbbbqbkbbbnbrynyrsbsq/aranvpvpbpbpbpbpbpbpbpbpypypsnsr/nbnp12opob/nqnp12opoq/crcp12rprr/cncp12rprn/gbgp12pppb/gqgp12pppq/yqyp12vpvq/ybyp12vpvb/onop12npnn/orop12npnr/rqrp12cpcq/rbrp12cpcb/srsnppppwpwpwpwpwpwpwpwpgpgpanar/sqsbprpnwrwnwbwqwkwbwnwrgngrabaq w';
 
 function App() {
-  const cg = useRef(null);
+  const cg = useRef<ReturnType<typeof NativeChessground> | null>(null);
 
-  const [engine, setEngine] = useState(null);
+  const [engine, setEngine] = useState<Engine | null>(null);
   const [fen, setFen] = useState(initialFen);
 
   // Promotion-related state
-  const [promotionDialogColor, setPromotionDialogColor] = useState(undefined);
-  const [pendingMove, setPendingMove] = useState();
+  const [promotionDialogColor, setPromotionDialogColor] = useState<Color | undefined>(undefined);
+  const [pendingMove, setPendingMove] = useState<PendingMove>();
 
   // Interface settings
   const [allowIllegalMoves, setAllowIllegalMoves] = useState(false);
   const [respondToMoves, setRespondToMoves] = useState(false);
-  const respondToMovesRef = useRef();
+  const respondToMovesRef = useRef(respondToMoves);
   respondToMovesRef.current = respondToMoves;
   const [fullAutoplay, setFullAutoplay] = useState(false);
-  const fullAutoplayRef = useRef();
+  const fullAutoplayRef = useRef(fullAutoplay);
   fullAutoplayRef.current = fullAutoplay;
 
   const [computerMoveDelay, setComputerMoveDelay] = useState(500);
-  const computerMoveDelayRef = useRef();
+  const computerMoveDelayRef = useRef(computerMoveDelay);
   computerMoveDelayRef.current = computerMoveDelay;
 
 
   useEffect(() => {
-    createModule().then((Module) => {
+    createModule().then((Module: EngineModule) => {
       setEngine({
         getLegalMoves: Module.cwrap('get_legal_moves', 'string', ['string']),
         makeMove: Module.cwrap('make_move', 'string', ['string', 'string']),
@@ -77,10 +99,10 @@ function App() {
     });
   }, []);
 
-  function handleMove(orig, dest, promotionRole) {
+  function handleMove(orig: Key, dest: Key, promotionRole: Role | undefined = undefined) {
 
     const destPos = key2pos(dest);
-    const piece = cg.current.state.pieces.get(dest);
+    const piece = cg.current!.state.pieces.get(dest)!;
     // is this a promotion?
     if (piece.role === 'pawn' &&
       destPos[0] > 5 && destPos[0] < 10 &&
@@ -101,7 +123,7 @@ function App() {
           move += pieceNames.get(promotionRole);
 
 
-        const newFen = engine.makeMove(oldFen, move);
+        const newFen = engine!.makeMove(oldFen, move);
         if (respondToMovesRef.current)
           setTimeout(() => autoplayMove(newFen), computerMoveDelayRef.current);
 
@@ -111,9 +133,9 @@ function App() {
     }
   }
 
-  function autoplayMove(fen, forceFullAutoplay) {
-    const selectedMove = engine.selectMove(fen);
-    const newFen = engine.makeMove(fen, selectedMove);
+  function autoplayMove(fen: FEN, forceFullAutoplay: boolean = false) {
+    const selectedMove = engine!.selectMove(fen);
+    const newFen = engine!.makeMove(fen, selectedMove);
     console.log("Computer chose move:", selectedMove);
     setFen(newFen);
 
@@ -124,7 +146,7 @@ function App() {
   }
 
   if (!engine) {
-    return "Loading..."; // TODO(samkhal)
+    return <div>"Loading..."</div>; // TODO(samkhal)
   }
 
   const config = {
@@ -137,10 +159,10 @@ function App() {
       enabled: false
     },
     movable: {
-      color: 'both',
+      color: 'both' as const,
       free: allowIllegalMoves,
       dests: movelistToDests(engine.getLegalMoves(fen)),
-      events: { after: (from, to) => handleMove(from, to) }
+      events: { after: (from: Key, to: Key) => handleMove(from, to) }
     },
     highlight: {
       lastMove: false,
@@ -151,7 +173,7 @@ function App() {
     cg.current.set(config);
   }
 
-  function setCgElement(el) {
+  function setCgElement(el: HTMLElement | null) {
     if (cg.current) {
       return;
     }
@@ -159,20 +181,27 @@ function App() {
       cg.current = NativeChessground(el, config);
   }
 
-  function handlePromotionSelection(selectedRole) {
-    cg.current.setPieces(new Map([
-      [pendingMove.from, undefined],
-      [pendingMove.to, { role: selectedRole, color: pendingMove.color, promoted: true }]
-    ]));
-    setPromotionDialogColor(undefined);
-    handleMove(pendingMove.from, pendingMove.to, selectedRole);
+  function handlePromotionSelection(selectedRole: Role) {
+    if (pendingMove) {
+      cg.current!.setPieces(new Map([
+        [pendingMove.from, undefined],
+        [pendingMove.to, { role: selectedRole, color: pendingMove.color, promoted: true }]
+      ]));
+      setPromotionDialogColor(undefined);
+      handleMove(pendingMove.from, pendingMove.to, selectedRole);
+    }
   }
 
 
   return (
     <ThemeProvider theme={darkTheme}>
       <div className="App">
-        <div ref={el => setCgElement(el)} />
+        <PlayerInfo ownedColor={Color.Navy} controlledColors={[]} />
+        <div className="blue merida">
+          <div ref={el => setCgElement(el)} />
+        </div>
+        <PlayerInfo ownedColor={Color.Violet} controlledColors={[Color.Green, Color.Yellow]} />
+
         <PromotionDialog color={promotionDialogColor} onClick={handlePromotionSelection} />
 
 

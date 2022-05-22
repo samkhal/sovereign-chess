@@ -9,11 +9,17 @@
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@mui/material": "^5.6.3",
+    "@types/emscripten": "^1.39.6",
+    "@types/jest": "^27.5.0",
+    "@types/node": "^17.0.31",
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.3",
     "chessground-sovereign": "^8.2.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-scripts": "^5.0.1",
-    "sovereign-engine": "file:./engine"
+    "sovereign-engine": "file:./engine",
+    "typescript": "^4.6.4"
   },
   "devDependencies": {
     "http-server": "^0.12"
