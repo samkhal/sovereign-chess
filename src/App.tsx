@@ -25,7 +25,7 @@ interface PendingMove {
 interface Engine {
   getLegalMoves(fen: FEN): Move[];
   makeMove(fen: FEN, move: Move): FEN;
-  selectMove(fen: FEN): Move;
+  selectMove(fen: FEN): Move | undefined;
   getOwnedColor(fen: FEN, activePlayer: boolean): Color;
   getControlledColors(fen: FEN, activePlayer: boolean): Color[];
 }
@@ -43,7 +43,7 @@ function wrapModule(Module: EngineModule) {
   return {
     getLegalMoves: (fen: FEN) => getLegalMoves(fen).split(' '),
     makeMove: makeMove,
-    selectMove: selectMove,
+    selectMove: (fen: FEN) => { const move = selectMove(fen); return move ? move : undefined; },
     getOwnedColor: (fen: FEN, activePlayer: boolean) => colorCharToName.get(getOwnedColor(fen, activePlayer))!,
     getControlledColors: (fen: FEN, activePlayer: boolean) => {
       const colorStr = getControlledColors(fen, activePlayer)
@@ -156,6 +156,10 @@ function App() {
 
   function autoplayMove(fen: FEN, forceFullAutoplay: boolean = false) {
     const selectedMove = engine!.selectMove(fen);
+    if (selectedMove === undefined) {
+      console.log("No legal moves");
+      return;
+    }
     const newFen = engine!.makeMove(fen, selectedMove);
     console.log("Computer chose move:", selectedMove);
     setFen(newFen);

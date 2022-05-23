@@ -32,11 +32,13 @@ std::string get_legal_moves_impl(std::string_view fen) {
 }
 
 std::string select_move_impl(std::string_view fen) {
-  typename Game::Board board = Game::Board::from_fen(fen);
+  Board board = Board::from_fen(fen);
 
-  RandomBot<Game> bot;
+  MinimaxBot bot;
   auto move = bot.select_move(board);
-  return move.to_string();
+  if (!move)
+    return "";
+  return move->to_string();
 }
 
 std::string make_move_impl(std::string_view fen, std::string_view move_str) {

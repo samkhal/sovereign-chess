@@ -172,6 +172,8 @@ inline bool is_friendly_color(const Board &board, Color color) {
   return board.controlling_player(color) == board.player_to_move();
 }
 
+bool is_in_check(const Board &board);
+
 std::vector<Move> get_possible_moves(const Board &board);
 
 struct Game {
