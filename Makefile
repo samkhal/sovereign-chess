@@ -5,7 +5,6 @@ src/engine.mjs: engine/js_api.cpp engine/sovereign_chess.h engine/sovereign_ches
 	  -s SINGLE_FILE=1  \
 	  -s EXPORT_NAME='createModule'  \
 	  -s USE_ES6_IMPORT_META=0  \
-	  -s EXPORTED_FUNCTIONS='["_get_legal_moves", "_select_move", "_make_move"]'  \
 	  -s EXPORTED_RUNTIME_METHODS='["cwrap"]'  \
 		-gsource-map --source-map-base=http://127.0.0.1:8080/ \
 	  -g

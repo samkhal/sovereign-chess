@@ -251,6 +251,8 @@ std::string Board::to_fen() {
 }
 
 std::optional<Player> Board::controlling_player(Color color) const {
+  if (color == Color::Empty)
+    return {};
   if (owned_color(Player::Player1) == color)
     return Player::Player1;
   if (owned_color(Player::Player2) == color)

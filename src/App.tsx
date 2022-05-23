@@ -23,9 +23,35 @@ interface PendingMove {
 };
 
 interface Engine {
-  getLegalMoves(fen: FEN): string;
-  makeMove(fen: FEN, move: Move): string;
-  selectMove(fen: FEN): string;
+  getLegalMoves(fen: FEN): Move[];
+  makeMove(fen: FEN, move: Move): FEN;
+  selectMove(fen: FEN): Move;
+  getOwnedColor(fen: FEN, activePlayer: boolean): Color;
+  getControlledColors(fen: FEN, activePlayer: boolean): Color[];
+}
+
+const colorCharToName = new Map<string, Color>(
+  Object.values(Color).map((value: Color) => [value.charAt(0), value])
+);
+
+function wrapModule(Module: EngineModule) {
+  const getLegalMoves = Module.cwrap('get_legal_moves', 'string', ['string']);
+  const makeMove = Module.cwrap('make_move', 'string', ['string', 'string']);
+  const selectMove = Module.cwrap('select_move', 'string', ['string']);
+  const getOwnedColor = Module.cwrap('get_owned_color', 'string', ['string', 'boolean']);
+  const getControlledColors = Module.cwrap('get_controlled_colors', 'string', ['string', 'boolean']);
+  return {
+    getLegalMoves: (fen: FEN) => getLegalMoves(fen).split(' '),
+    makeMove: makeMove,
+    selectMove: selectMove,
+    getOwnedColor: (fen: FEN, activePlayer: boolean) => colorCharToName.get(getOwnedColor(fen, activePlayer))!,
+    getControlledColors: (fen: FEN, activePlayer: boolean) => {
+      const colorStr = getControlledColors(fen, activePlayer)
+      if (!colorStr)
+        return [];
+      return colorStr.split(' ').map((colorChar) => colorCharToName.get(colorChar)!)
+    }
+  };
 }
 
 interface EngineModule extends EmscriptenModule {
@@ -38,9 +64,9 @@ const darkTheme = createTheme({
   },
 });
 
-function movelistToDests(movelist: string) {
+function movelistToDests(movelist: Move[]) {
   var dests = new Map();
-  for (const move of movelist.split(' ')) {
+  for (const move of movelist) {
     // temporary hacky, TODO(samkhal) add proper protocol
     const from = move.slice(0, 2);
     const to = move.slice(2, 4);
@@ -88,14 +114,9 @@ function App() {
   const computerMoveDelayRef = useRef(computerMoveDelay);
   computerMoveDelayRef.current = computerMoveDelay;
 
-
   useEffect(() => {
     createModule().then((Module: EngineModule) => {
-      setEngine({
-        getLegalMoves: Module.cwrap('get_legal_moves', 'string', ['string']),
-        makeMove: Module.cwrap('make_move', 'string', ['string', 'string']),
-        selectMove: Module.cwrap('select_move', 'string', ['string'])
-      });
+      setEngine(wrapModule(Module));
     });
   }, []);
 
@@ -193,14 +214,25 @@ function App() {
   }
 
 
+  // TODO fix this
+  const selfIsActivePlayer = turnPlayer(fen) === Side.White;
+
   return (
     <ThemeProvider theme={darkTheme}>
       <div className="App">
-        <PlayerInfo className="playerinfo-enemy" ownedColor={Color.Navy} controlledColors={[]} />
+        <PlayerInfo
+          className="playerinfo-enemy"
+          playerName="Enemy"
+          ownedColor={engine.getOwnedColor(fen, !selfIsActivePlayer)}
+          controlledColors={engine.getControlledColors(fen, !selfIsActivePlayer)} />
         <div className="blue merida board-outer">
           <div ref={el => setCgElement(el)} />
         </div>
-        <PlayerInfo className="playerinfo-self" ownedColor={Color.Violet} controlledColors={[Color.Green, Color.Yellow]} />
+        <PlayerInfo
+          className="playerinfo-self"
+          playerName="Player"
+          ownedColor={engine.getOwnedColor(fen, selfIsActivePlayer)}
+          controlledColors={engine.getControlledColors(fen, selfIsActivePlayer)} />
 
         <PromotionDialog color={promotionDialogColor} onClick={handlePromotionSelection} />
 
